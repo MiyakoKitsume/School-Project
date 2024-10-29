@@ -21,8 +21,7 @@ int main() {
     cout << "- Nhap y: ";
     cin >> yB;
 
-    double distance = tinhKhoangCach(xA, yA, xB, yB);
-    distance = round ( 100 * distance) / 100;
+    double distance = round(100 * tinhKhoangCach(xA, yA, xB, yB)) / 100;
     cout << "-> Khoang cach tu A(" << xA << "," << yA << ") den B(" << xB << "," << yB << ") la: " << distance << endl;
 
     return 0;
