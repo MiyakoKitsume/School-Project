@@ -1,0 +1,33 @@
+8
+Bui Nam 
+10
+10
+10
+Hoang Minh Vu 
+9
+7
+8
+Nguyen Thanh Tuan 
+0
+4
+5
+Nguyen Van Nam 
+5
+4
+3
+Phan Nhu Thao 
+6
+4
+8
+Quang Van Hai 
+5
+8
+8
+Thai Nam 
+8.5
+9
+9.5
+Tran Thuy Hoa 
+5
+7
+3
