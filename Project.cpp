@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <conio.h>
+#include <cctype>
 
 #define KEY_RIGHT 77
 #define KEY_LEFT 75
@@ -194,7 +195,7 @@ void searchStudent(vector<Student>& students) {
 
 void deleteStudent(const string& filename, vector<Student> students){
     int stt;
-    cout << "Nhap STT sinh vien can xoa: ";
+    cout << "Nhap STT sinh vien (gom "<< students.size() <<" sinh vien) can xoa: ";
     cin >> stt;
     students.erase(students.begin() + (stt - 1));
     for (size_t i = 0; i < students.size(); ++i) {
