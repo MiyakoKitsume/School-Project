@@ -19,9 +19,9 @@ struct Student {
 void inputStudentData(Student& s, int stt) {
     s.stt = stt;
     cout << "+ Ho va Ten: ";
-    getline(cin, s.hoTen);
-    cin.ignore();
-
+    do {
+        getline(cin, s.hoTen);
+    } while (s.hoTen.size() == 0);
     cout << "+ Diem Toan: ";
     cin >> s.toan;
     
@@ -44,10 +44,10 @@ bool readStudentData(ifstream& fi, Student& s, int stt) {
 }
 
 void writeStudentData(ofstream& fo, const Student& s) {
-    fo << s.hoTen << endl
-       << s.toan << endl
-       << s.ly << endl
-       << s.hoa << endl;
+    fo << s.hoTen << endl;
+    fo << s.toan << endl;
+    fo << s.ly << endl;
+    fo << s.hoa << endl;
 }
 
 void displayStudent(const Student& s) {
@@ -77,7 +77,7 @@ bool compareStudents(const Student& a, const Student& b, int sortChoice) {
 void readFileData(const string& filename, vector<Student>& students) {
     ifstream fi(filename);
     if (!fi.is_open()) {
-        cerr << "Khong the mo file: " << filename << endl;
+        cout << "Khong the mo file: " << filename << endl;
         return;
     }
     int n;
@@ -89,7 +89,7 @@ void readFileData(const string& filename, vector<Student>& students) {
         if (readStudentData(fi, s, i + 1))
             students.push_back(s);
         else {
-            cerr << "Loi doc du lieu tu file tai dong thu " << i + 1 << endl;
+            cout << "Loi doc du lieu tu file tai dong thu " << i + 1 << endl;
             break;
         }
     }
@@ -99,7 +99,7 @@ void readFileData(const string& filename, vector<Student>& students) {
 void writeFileData(const string& filename, const vector<Student>& students) {
     ofstream fo(filename);
     if (!fo.is_open()) {
-        cerr << "Khong the mo file de ghi: " << filename << endl;
+        cout << "Khong the mo file de ghi: " << filename << endl;
         return;
     }
     fo << students.size() << endl;
@@ -138,7 +138,110 @@ void displayPaginated(const vector<Student>& students, int entriesPerPage) {
     } while (true);
 }
 
-int main() {
+void addStudent(const string& filename, vector<Student>& students){
+    int n;
+    cout << "Nhap so luong hoc sinh can them: ";
+    cin >> n;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    readFileData(filename, students);
+
+    for (int i = 0; i < n; i++) {
+        Student newStudent;
+        cout << "Nhap thong tin sinh vien thu " << students.size() + 1 << ":" << endl;
+        inputStudentData(newStudent, students.size() + 1);
+        students.push_back(newStudent);
+    }
+    writeFileData(filename, students);
+}
+
+void searchStudent(vector<Student>& students) {
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    string name;
+    cout << "Nhap ten can tim: ";
+    getline(cin, name);
+
+    bool foundName = false;
+    displayHeader();
+
+    for (const auto& s : students) {
+        const string& studentName = s.hoTen;
+        if (studentName.size() == name.size()) {
+            bool isMatch = true;
+            for (size_t i = 0; i < studentName.size(); i++) {
+                if (tolower(studentName[i]) != tolower(name[i])) {
+                    isMatch = false;
+                    break;
+                }
+            }
+            if (isMatch) {
+                displayStudent(s);
+                foundName = true;
+            }
+        }
+    }
+
+    if (!foundName) {
+        cout << "Khong tim thay sinh vien nao voi ten \"" << name << "\"." << endl;
+    } else {
+        cout << "----------------------------------------------------------" << endl;
+    }
+
+    cout << "Nhan phim bat ky de quay lai menu....." << endl;
+    getch();
+}
+
+
+void deleteStudent(const string& filename, vector<Student> students){
+    int stt;
+    cout << "Nhap STT sinh vien can xoa: ";
+    cin >> stt;
+    students.erase(students.begin() + (stt - 1));
+    for (size_t i = 0; i < students.size(); ++i) {
+        students[i].stt = i + 1;
+    }
+    cout << "Xoa thanh cong!" << endl;
+    writeFileData(filename, students);
+}
+
+void editStudent(const string& filename, vector<Student> students){
+    int stt;
+    cout << "Nhap STT ( gom " << students.size() + 1 << " stt) sinh vien can chinh sua: ";
+    cin >> stt;
+    for (auto& s : students) {
+        if (s.stt == stt) {
+            inputStudentData(s, stt);
+            break;
+        } else {
+            cout << "Khong tim thay stt";
+            break;
+        }
+    }
+    writeFileData(filename, students);
+}
+
+void sortStudent(const string& filename, vector<Student> students){
+    int sortChoice;
+    cout << "Sap xep theo:" << endl;
+    cout << "1. Ho Ten tang dan" << endl;
+    cout << "2. Ho Ten giam dan" << endl;
+    cout << "3. Diem TB tang dan" << endl;
+    cout << "4. Diem TB giam dan" << endl;
+    cout << "0. Thoat" << endl;
+    cin >> sortChoice;
+    if (sortChoice != 0) {
+        sort(students.begin(), students.end(), [&](const Student& a, const Student& b) {
+            return compareStudents(a, b, sortChoice);
+        });
+        displayHeader();
+        for (const auto& student : students) {
+            displayStudent(student);
+        }
+        writeFileData(filename, students);
+    }
+}
+
+void mainMenu(){
     vector<Student> students;
     const string filename = "C:\\Users\\Kitsume\\Documents\\Data.txt";
     int choice;
@@ -161,84 +264,30 @@ int main() {
                 if (students.empty()) {
                     cout << "Danh sach sinh vien trong!" << endl;
                 } else {
-                    displayPaginated(students, 5);
+                    displayPaginated(students, 8);
                 }
                 break;
             case 2:
                 CLEAR_SCREEN();
-                int n;
-                cout << "Nhap so luong hoc sinh can them: ";
-                cin >> n;
-                cin.ignore();
-
-                readFileData(filename, students);
-
-                for (int i = 0; i < n; i++) {
-                    Student newStudent;
-                    cout << "Nhap thong tin sinh vien thu " << students.size() + 1 << ":" << endl;
-                    inputStudentData(newStudent, students.size() + 1);
-                    students.push_back(newStudent);
-                }
-                writeFileData(filename, students);
+                addStudent(filename, students);
                 break;
 
             case 3:
                 CLEAR_SCREEN();
-                int sortChoice;
-                cout << "Sap xep theo:" << endl;
-                cout << "1. Ho Ten tang dan" << endl;
-                cout << "2. Ho Ten giam dan" << endl;
-                cout << "3. Diem TB tang dan" << endl;
-                cout << "4. Diem TB giam dan" << endl;
-                cout << "0. Thoat" << endl;
-                cin >> sortChoice;
-                if (sortChoice != 0) {
-                    sort(students.begin(), students.end(), [&](const Student& a, const Student& b) {
-                        return compareStudents(a, b, sortChoice);
-                    });
-                    displayHeader();
-                    for (const auto& student : students) {
-                        displayStudent(student);
-                    }
-                    writeFileData(filename, students);
-                }
+                sortStudent(filename, students);
                 break;
             case 4: {
                 CLEAR_SCREEN();
-                cin.ignore();
-                string name;
-                cout << "Nhap ten can tim: ";
-                getline(cin, name);
-                for (const auto& s : students) {
-                    if (s.hoTen == name) {
-                        displayStudent(s);
-                    }
-                }
+                searchStudent(students);
                 break;
             }
             case 5:
                 CLEAR_SCREEN();
-                int stt;
-                cout << "Nhap STT sinh vien can chinh sua: ";
-                cin >> stt;
-                for (auto& s : students) {
-                    if (s.stt == stt) {
-                        inputStudentData(s, stt);
-                        break;
-                    }
-                }
-                writeFileData(filename, students);
+                editStudent(filename, students);
                 break;
             case 6:
                 CLEAR_SCREEN();
-                cout << "Nhap STT sinh vien can xoa: ";
-                cin >> stt;
-                students.erase(students.begin() + (stt - 1));
-                for (size_t i = 0; i < students.size(); ++i) {
-                    students[i].stt = i + 1;
-                }
-                cout << "Xoa thanh cong!" << endl;
-                writeFileData(filename, students);
+                deleteStudent(filename, students);
                 break;
             case 0:
                 break;
@@ -246,8 +295,10 @@ int main() {
                 cout << "Lua chon khong hop le!" << endl;
         }
         CLEAR_SCREEN();
-
     } while (choice != 0);
+}
 
+int main() {
+    mainMenu();    
     return 0;
 }
