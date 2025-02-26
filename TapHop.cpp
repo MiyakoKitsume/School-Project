@@ -6,6 +6,11 @@ class TH{
 private:
     vector<int> arr;
 public:
+
+    //! Thiết lập constructor mặc định
+    TH(){}
+
+    //! Nhập dữ liệu đầu vào
     friend istream &operator>>(istream &is, TH &b){
         int n;
         cout << "\nNhap so luong phan tu trong tap hop: ";
@@ -18,15 +23,22 @@ public:
         return is;
     }
 
+    //! Xuất dữ liệu ra màn hình
     friend ostream &operator<<(ostream &os, const TH &b){
-        for (int i = 0; i < b.arr.size(); i++){
-            os << b.arr[i] << " ";
+        os << "{";
+        for (size_t i = 0; i < b.arr.size(); i++){
+            os << b.arr[i];
+            if (i < b.arr.size() - 1){
+                os << ", ";
+            }
         }
+        os << "}";
         os << endl;
         return os;
     }
 
-    TH operator+(const TH &b){
+    //! Hợp hai tập hợp
+    TH operator+(TH &b){
         TH res;
         res.arr = arr;
         res.arr.insert(res.arr.end(), b.arr.begin(), b.arr.end());
@@ -39,35 +51,24 @@ public:
         return res;
     }
 
-    TH operator-(const TH &b){
+
+    //! Hiệu hai tập hợp
+    TH operator-(TH &b){
         TH res;
-        for (int i = 0; i < arr.size(); i++) {
-            bool found = false;
-            for (int j = 0; j < b.arr.size(); j++) {
-                if (arr[i] == b.arr[j]) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                res.arr.push_back(arr[i]);
+        for (auto& s : arr){
+            if (find(b.arr.begin(), b.arr.end(), s) == b.arr.end()){
+                res.arr.push_back(s);
             }
         }
         return res;
     }
 
+    //! Giao hai tập hợp
     TH operator*(const TH &b){
         TH res;
-        for (int i = 0; i < arr.size(); i++) {
-            bool found = false;
-            for (int j = 0; j < b.arr.size(); j++) {
-                if (arr[i] == b.arr[j]) {
-                    found = true;
-                    break;
-                }
-            }
-            if (found) {
-                res.arr.push_back(arr[i]);
+        for (const auto& s : arr){
+            if (find(b.arr.begin(), b.arr.end(), s) != b.arr.end()){
+                res.arr.push_back(s);
             }
         }
         return res;
@@ -80,21 +81,9 @@ int main(){
     cout << "Nhap tap hop a: "; cin >> a;
     cout << "Nhap tap hop b: "; cin >> b;
 
-    cout << "Tap hop tong: ";
-    c = a + b;
-    cout << c;
-
-    cout << "Tap hop nhan: ";
-    c = a * b;
-    cout << c;
-
-    cout << "Tap hop tru(A - B): ";
-    c = a - b;
-    cout << c;
-
-    cout << "Tap hop tru(B - A): ";
-    c = b - a;
-    cout << c;
-
+    cout << "Tap hop tong: " << (c = a + b);
+    cout << "Tap hop nhan: " << (c = a * b);
+    cout << "Tap hop tru(A - B): " << (c = a - b);
+    cout << "Tap hop tru(B - A): " << (c = b - a);
     return 0;
 }
