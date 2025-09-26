@@ -1,12 +1,12 @@
 package gui;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.text.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.*;
 
 public class MainFrame extends JFrame {
 
@@ -23,6 +23,11 @@ public class MainFrame extends JFrame {
         tableModel = new DefaultTableModel(new Object[]{"ID", "Name", "Date", "Gender", "GPA",}, 0);
         table = new JTable(tableModel);
         table.setDefaultEditor(Object.class, null);
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
+        table.setRowSorter(sorter);
+        sorter.setSortKeys(Arrays.asList(
+                new RowSorter.SortKey(4, SortOrder.DESCENDING)
+        ));
         loadTable();
         JScrollPane scrollPane = new JScrollPane(table);
         JButton btnAdd = new JButton("Add");
@@ -60,54 +65,79 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void addStudent() {
+    private void showStudentForm(Student existingStudent) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        try {
-            String id = JOptionPane.showInputDialog(this, "Enter student ID:");
-            String name = JOptionPane.showInputDialog(this, "Enter full name:");
-            Date date = sdf.parse(JOptionPane.showInputDialog(this, "Enter date:"));
-            String gender = JOptionPane.showInputDialog(this, "Enter gender:");
-            String gpaStr = JOptionPane.showInputDialog(this, "Enter GPA:");
 
-            if (id != null && !id.trim().isEmpty() && name != null
-                    && !name.trim().isEmpty() && gpaStr != null && gender != null
-                    && date != null) {
-                double gpa = Double.parseDouble(gpaStr);
-                manager.addStudent(new Student(id, name, date, gender, gpa));
+        JTextField idField = new JTextField(15);
+        JTextField nameField = new JTextField(15);
+        JTextField dateField = new JTextField(15);
+        JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Other"});
+        JTextField gpaField = new JTextField(15);
+
+        if (existingStudent != null) {
+            idField.setText(existingStudent.getID());
+            idField.setEnabled(false);
+            nameField.setText(existingStudent.getFullName());
+            dateField.setText(sdf.format(existingStudent.getDate()));
+            genderBox.setSelectedItem(existingStudent.getGender());
+            gpaField.setText(String.valueOf(existingStudent.getGPA()));
+        }
+
+        JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
+        panel.add(new JLabel("Student ID:"));
+        panel.add(idField);
+        panel.add(new JLabel("Full Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel("Date (dd/MM/yyyy):"));
+        panel.add(dateField);
+        panel.add(new JLabel("Gender:"));
+        panel.add(genderBox);
+        panel.add(new JLabel("GPA:"));
+        panel.add(gpaField);
+
+        int result = JOptionPane.showConfirmDialog(
+                this, panel,
+                (existingStudent == null ? "Add Student" : "Edit Student"),
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                String id = idField.getText().trim();
+                String name = nameField.getText().trim();
+                Date date = sdf.parse(dateField.getText().trim());
+                String gender = (String) genderBox.getSelectedItem();
+                double gpa = Double.parseDouble(gpaField.getText().trim());
+
+                if (existingStudent == null) {
+                    manager.addStudent(new Student(id, name, date, gender, gpa));
+                } else {
+                    existingStudent.setFullName(name);
+                    existingStudent.setDate(date);
+                    existingStudent.setGender(gender);
+                    existingStudent.setGPA(gpa);
+                }
                 loadTable();
+            } catch (ParseException e) {
+                JOptionPane.showMessageDialog(this, "Invalid date! Use dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Invalid GPA!", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Invalid GPA input!!", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (ParseException e) {
-            JOptionPane.showMessageDialog(this, "Invalid date format! Use dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    private void addStudent() {
+        showStudentForm(null);
+    }
+
     private void editStudent() {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         int row = table.getSelectedRow();
         if (row >= 0) {
             String id = (String) tableModel.getValueAt(row, 0);
             Student s = manager.findStudent(id);
             if (s != null) {
-                try {
-                    String newName = JOptionPane.showInputDialog(this, "Enter new name:", s.getFullName());
-                    String newGpaStr = JOptionPane.showInputDialog(this, "Enter new GPA:", s.getGPA());
-                    String newGender = JOptionPane.showInputDialog(this, "Enter new gender:", s.getGender());
-                    Date newDate = sdf.parse(JOptionPane.showInputDialog(this, "Enter new date:", sdf.format(s.getDate())));
-                    if (newName != null && !newName.trim().isEmpty() && newGpaStr != null) {
-                        double newGpa = Double.parseDouble(newGpaStr);
-                        s.setFullName(newName);
-                        s.setGPA(newGpa);
-                        s.setDate(newDate);
-                        s.setGender(newGender);
-                        loadTable();
-                    }
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid GPA input!!", "Error", JOptionPane.ERROR_MESSAGE);
-                } catch (ParseException e) {
-                    JOptionPane.showMessageDialog(this, "Invalid date format! Use dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+                showStudentForm(s);
             }
         } else {
             JOptionPane.showMessageDialog(this, "Choose a student to edit");
@@ -119,6 +149,7 @@ public class MainFrame extends JFrame {
         if (row >= 0) {
             String id = (String) tableModel.getValueAt(row, 0);
             manager.removeStudent(id);
+            JOptionPane.showMessageDialog(this, "Deleted successfully");
             loadTable();
         } else {
             JOptionPane.showMessageDialog(this, "Choose a student to delete");
@@ -147,7 +178,7 @@ public class MainFrame extends JFrame {
             fName += ".txt";
         }
         manager.saveToFile(fName);
-        JOptionPane.showMessageDialog(this, "Saved successfully!!");
+        JOptionPane.showMessageDialog(this, "Saved successfully");
     }
 
     private void loadFile() {
@@ -159,7 +190,7 @@ public class MainFrame extends JFrame {
             File file = fileChooser.getSelectedFile();
             manager.loadFromFile(file.getAbsolutePath());
             loadTable();
-            JOptionPane.showMessageDialog(this, "Loaded successfully!");
+            JOptionPane.showMessageDialog(this, "Loaded successfully");
         }
 
     }

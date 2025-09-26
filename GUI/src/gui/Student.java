@@ -1,10 +1,9 @@
 package gui;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Student implements Serializable {
+public class Student {
 
     private String ID;
     private String fullName;
