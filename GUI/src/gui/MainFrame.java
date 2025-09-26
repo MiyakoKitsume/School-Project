@@ -6,12 +6,13 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.text.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class MainFrame extends JFrame {
 
-    private StudentManager manager;
-    private DefaultTableModel tableModel;
-    private JTable table;
+    private final StudentManager manager;
+    private final DefaultTableModel tableModel;
+    private final JTable table;
 
     public MainFrame(StudentManager manager) {
         this.manager = manager;
@@ -42,20 +43,8 @@ public class MainFrame extends JFrame {
         add(scrollPane, BorderLayout.CENTER);
         add(panelButtons, BorderLayout.SOUTH);
 
-        btnAdd.addActionListener(e -> {
-            try {
-                addStudent();
-            } catch (ParseException ex) {
-                System.getLogger(MainFrame.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-            }
-        });
-        btnEdit.addActionListener(e -> {
-            try {
-                editStudent();
-            } catch (ParseException ex) {
-                System.getLogger(MainFrame.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-            }
-        });
+        btnAdd.addActionListener(e -> addStudent());
+        btnEdit.addActionListener(e -> editStudent());
         btnDelete.addActionListener(e -> deleteStudent());
         btnSearch.addActionListener(e -> searchStudent());
         btnExit.addActionListener(e -> System.exit(0));
@@ -71,7 +60,7 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void addStudent() throws ParseException {
+    private void addStudent() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         try {
             String id = JOptionPane.showInputDialog(this, "Enter student ID:");
@@ -94,7 +83,7 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void editStudent() throws ParseException {
+    private void editStudent() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         int row = table.getSelectedRow();
         if (row >= 0) {
@@ -116,6 +105,8 @@ public class MainFrame extends JFrame {
                     }
                 } catch (NumberFormatException e) {
                     JOptionPane.showMessageDialog(this, "Invalid GPA input!!", "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (ParseException e) {
+                    JOptionPane.showMessageDialog(this, "Invalid date format! Use dd/MM/yyyy", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } else {
@@ -147,7 +138,15 @@ public class MainFrame extends JFrame {
     }
 
     private void saveFile() {
-        manager.saveToFile();
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("TXT Files",
+                ".txt"));
+        fileChooser.showSaveDialog(null);
+        String fName = fileChooser.getSelectedFile().getAbsolutePath();
+        if (!fName.toLowerCase().endsWith(".txt")) {
+            fName += ".txt";
+        }
+        manager.saveToFile(fName);
         JOptionPane.showMessageDialog(this, "Saved successfully!!");
     }
 

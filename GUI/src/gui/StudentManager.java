@@ -16,12 +16,12 @@ public final class StudentManager {
 
     public void addStudent(Student s) {
         list.add(s);
-        saveToFile();
+        saveFromDefaultFile();
     }
 
     public void removeStudent(String id) {
         list.removeIf(s -> s.getID().equalsIgnoreCase(id));
-        saveToFile();
+        saveFromDefaultFile();
     }
 
     public Student findStudent(String id) {
@@ -37,16 +37,17 @@ public final class StudentManager {
         return list;
     }
 
-    public void saveToFile() {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(FILE_NAME))) {
+    public void saveToFile(String fileName) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             for (Student s : list) {
-                pw.println(s.getID() + "," + s.getFullName() + ","
+                bw.write(s.getID() + "," + s.getFullName() + ","
                         + sdf.format(s.getDate()) + ","
-                        + s.getGender() + "," + s.getGPA());
+                        + s.getGender() + "," + s.getGPA() + "\n");
             }
+            bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error saving file: " + e.getMessage());
         }
     }
 
@@ -80,5 +81,9 @@ public final class StudentManager {
 
     public void loadFromDefaultFile() {
         loadFromFile(FILE_NAME);
+    }
+
+    private void saveFromDefaultFile() {
+        saveToFile(FILE_NAME);
     }
 }
